@@ -129,8 +129,7 @@ uint32_t rc_map2id(rc_handle *rh, char *name)
  * Arguments: Radius Client handle
  */
 
-void
-rc_map2id_free(rc_handle *rh)
+void rc_map2id_free(rc_handle *rh)
 {
 	struct map2id_s *p, *np;
 

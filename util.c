@@ -246,12 +246,11 @@ rc_mksid (rc_handle *rh)
  *
  */
 
-rc_handle *
-rc_new(void)
+rc_handle * rc_new(void)
 {
 	rc_handle *rh;
 
-	rh = malloc(sizeof(*rh));
+	rh = (rc_handle *)malloc(sizeof(*rh));
 	if (rh == NULL) {
                 // rc_log(LOG_CRIT, "rc_new: out of memory");
                 return NULL;
@@ -267,8 +266,7 @@ rc_new(void)
  *
  */
 
-void
-rc_destroy(rc_handle *rh)
+void rc_destroy(rc_handle *rh)
 {
 
 	rc_map2id_free(rh);
@@ -297,7 +295,7 @@ rc_fgetln(FILE *fp, size_t *len)
 
 	if (buf == NULL) {
 		bufsiz = RC_BUFSIZ;
-		if ((buf = malloc(bufsiz)) == NULL)
+		if ((buf = (char *)malloc(bufsiz)) == NULL)
 			return NULL;
 	}
 
@@ -307,7 +305,7 @@ rc_fgetln(FILE *fp, size_t *len)
 
 	while ((ptr = strchr(&buf[*len], '\n')) == NULL) {
 		size_t nbufsiz = bufsiz + RC_BUFSIZ;
-		char *nbuf = realloc(buf, nbufsiz);
+		char *nbuf = (char *)realloc(buf, nbufsiz);
 
 		if (nbuf == NULL) {
 			int oerrno = errno;

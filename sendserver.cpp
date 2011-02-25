@@ -22,7 +22,7 @@
 #define	SA(p)	((struct sockaddr *)(p))
 
 static void rc_random_vector (unsigned char *);
-static int rc_check_reply (AUTH_HDR *, int, char *, unsigned char *, unsigned char);
+static int rc_check_reply (AUTH_HDR *, int, const char *, unsigned char *, unsigned char);
 
 /*
  * Function: rc_pack_list
@@ -33,7 +33,7 @@ static int rc_check_reply (AUTH_HDR *, int, char *, unsigned char *, unsigned ch
  *
  */
 
-static int rc_pack_list (VALUE_PAIR *vp, char *secret, AUTH_HDR *auth)
+static int rc_pack_list (VALUE_PAIR *vp, const char *secret, AUTH_HDR *auth)
 {
 	int             length, i, pc, padded_length;
 	int             total_length = 0;
@@ -183,14 +183,16 @@ int rc_send_server (rc_handle *rh, SEND_DATA *data, char *msg)
 	fd_set          readfds;
 	AUTH_HDR       *auth, *recv_auth;
 	uint32_t           auth_ipaddr, nas_ipaddr;
-	char           *server_name;	/* Name of server to query */
+//	char           *server_name;	/* Name of server to query */
+	string          server_name;	/* Name of server to query */
 	socklen_t       salen;
 	int             result;
 	int             total_length;
 	int             length;
 	int             retry_max;
 	size_t			secretlen;
-	char            secret[MAX_SECRET_LENGTH + 1];
+//	char            secret[MAX_SECRET_LENGTH + 1];
+	string            secret;
 	unsigned char   vector[AUTH_VECTOR_LEN];
 	char            recv_buffer[BUFFER_LEN];
 	char            send_buffer[BUFFER_LEN];
@@ -199,40 +201,46 @@ int rc_send_server (rc_handle *rh, SEND_DATA *data, char *msg)
 
 	server_name = data->server;
         fprintf(stdout, "rc_send_server:: data->server: %s\n", data->server);
-	if (server_name == NULL || server_name[0] == '\0')
-		return ERROR_RC;
+//	if (server_name == NULL || server_name[0] == '\0')
+//		return ERROR_RC;
 
 	if ((vp = rc_avpair_get(data->send_pairs, PW_SERVICE_TYPE, 0)) && \
 	    (vp->lvalue == PW_ADMINISTRATIVE))
 	{
-		strcpy(secret, MGMT_POLL_SECRET);
+// zz
+//            strcpy(secret, MGMT_POLL_SECRET);
+		secret = MGMT_POLL_SECRET;
 		if ((auth_ipaddr = rc_get_ipaddr(server_name)) == 0)
 			return ERROR_RC;
 	}
 	else
 	{
-		if(data->secret != NULL)
+		if(data->secret.length()>0)
 		{
-			strncpy(secret, data->secret, MAX_SECRET_LENGTH);
+// zz
+//			strncpy(secret, , MAX_SECRET_LENGTH);
+                        secret.assign( data->secret.c_str(), MAX_SECRET_LENGTH);
 		}
 		/*
 		else
 		{
 		*/
-		if (rc_find_server (rh, server_name, &auth_ipaddr, secret) != 0)
-		{
+// zz
+//		if (rc_find_server (rh, server_name, &auth_ipaddr, secret) != 0)
+//		{
 			// rc_log(LOG_ERR, "rc_send_server: unable to find server: %s", server_name);
 			return ERROR_RC;
-		}
+//		}
 		/*}*/
 	}
 
-	DEBUG(LOG_ERR, "DEBUG: rc_send_server: creating socket to: %s", server_name);
+//	DEBUG(LOG_ERR, "DEBUG: rc_send_server: creating socket to: %s", server_name);
 
 	sockfd = socket (AF_INET, SOCK_DGRAM, 0);
 	if (sockfd < 0)
 	{
-		memset (secret, '\0', sizeof (secret));
+//		memset (secret, '\0', sizeof (secret));
+            secret.clear();
 		// rc_log(LOG_ERR, "rc_send_server: socket: %s", strerror(errno));
 		return ERROR_RC;
 	}
@@ -244,7 +252,8 @@ int rc_send_server (rc_handle *rh, SEND_DATA *data, char *msg)
 	if (bind(sockfd, SA(&sinlocal), sizeof(sinlocal)) < 0)
 	{
 		close (sockfd);
-		memset (secret, '\0', sizeof (secret));
+//		memset (secret, '\0', sizeof (secret));
+                secret.clear();
 		// rc_log(LOG_ERR, "rc_send_server: bind: %s: %s", server_name, strerror(errno));
 		return ERROR_RC;
 	}
@@ -263,7 +272,8 @@ int rc_send_server (rc_handle *rh, SEND_DATA *data, char *msg)
 	if (sinlocal.sin_addr.s_addr == htonl(INADDR_ANY)) {
 		if (rc_get_srcaddr(SA(&sinlocal), SA(&sinremote)) != 0) {
 			close (sockfd);
-			memset (secret, '\0', sizeof (secret));
+//			memset (secret, '\0', sizeof (secret));
+                        secret.clear();
 			return ERROR_RC;
 		}
 	}
@@ -278,13 +288,13 @@ int rc_send_server (rc_handle *rh, SEND_DATA *data, char *msg)
 
 	if (data->code == PW_ACCOUNTING_REQUEST)
 	{
-		total_length = rc_pack_list(data->send_pairs, secret, auth) + AUTH_HDR_LEN;
+		total_length = rc_pack_list(data->send_pairs, secret.c_str(), auth) + AUTH_HDR_LEN;
 
 		auth->length = htons ((unsigned short) total_length);
 
 		memset((char *) auth->vector, 0, AUTH_VECTOR_LEN);
-		secretlen = strlen (secret);
-		memcpy ((char *) auth + total_length, secret, secretlen);
+		secretlen = secret.length();
+		memcpy ((char *) auth + total_length, secret.c_str(), secretlen);
 		rc_md5_calc (vector, (unsigned char *) auth, total_length + secretlen);
 		memcpy ((char *) auth->vector, (char *) vector, AUTH_VECTOR_LEN);
 	}
@@ -293,14 +303,12 @@ int rc_send_server (rc_handle *rh, SEND_DATA *data, char *msg)
 		rc_random_vector (vector);
 		memcpy ((char *) auth->vector, (char *) vector, AUTH_VECTOR_LEN);
 
-		total_length = rc_pack_list(data->send_pairs, secret, auth) + AUTH_HDR_LEN;
+		total_length = rc_pack_list(data->send_pairs, secret.c_str(), auth) + AUTH_HDR_LEN;
 
 		auth->length = htons ((unsigned short) total_length);
 	}
 
-	DEBUG(LOG_ERR, "DEBUG: local %s : 0, remote %s : %u\n", 
-		inet_ntoa(sinlocal.sin_addr),
-		inet_ntoa(sinremote.sin_addr), data->svc_port);
+//	DEBUG(LOG_ERR, "DEBUG: local %s : 0, remote %s : %u\n", inet_ntoa(sinlocal.sin_addr), inet_ntoa(sinremote.sin_addr), data->svc_port);
 
 	for (;;)
 	{
@@ -316,7 +324,8 @@ int rc_send_server (rc_handle *rh, SEND_DATA *data, char *msg)
 			if (errno == EINTR)
 				continue;
 			// rc_log(LOG_ERR, "rc_send_server: select: %s", strerror(errno));
-			memset (secret, '\0', sizeof (secret));
+//			memset (secret, '\0', sizeof (secret));
+                        secret.clear();
 			close (sockfd);
 			return ERROR_RC;
 		}
@@ -331,21 +340,21 @@ int rc_send_server (rc_handle *rh, SEND_DATA *data, char *msg)
 		{
 			// rc_log(LOG_ERR,				"rc_send_server: no reply from RADIUS server %s:%u, %s",				 rc_ip_hostname (auth_ipaddr), data->svc_port, inet_ntoa(sinremote.sin_addr));
 			close (sockfd);
-			memset (secret, '\0', sizeof (secret));
+//			memset (secret, '\0', sizeof (secret));
+                        secret.clear();
 			return TIMEOUT_RC;
 		}
 	}
 	salen = sizeof(sinremote);
-	length = recvfrom (sockfd, (char *) recv_buffer,
-			   (int) sizeof (recv_buffer),
-			   (int) 0, SA(&sinremote), &salen);
+	length = recvfrom (sockfd, (char *) recv_buffer, (int) sizeof (recv_buffer), (int) 0, SA(&sinremote), &salen);
 
 	if (length <= 0)
 	{
 		// rc_log(LOG_ERR, "rc_send_server: recvfrom: %s:%d: %s", server_name,\
 			 data->svc_port, strerror(errno));
 		close (sockfd);
-		memset (secret, '\0', sizeof (secret));
+//		memset (secret, '\0', sizeof (secret));
+                secret.clear();
 		return ERROR_RC;
 	}
 
@@ -354,11 +363,12 @@ int rc_send_server (rc_handle *rh, SEND_DATA *data, char *msg)
 	if (length < AUTH_HDR_LEN || length < ntohs(recv_auth->length)) {
 		// rc_log(LOG_ERR, "rc_send_server: recvfrom: %s:%d: reply is too short",		    server_name, data->svc_port);
 		close(sockfd);
-		memset(secret, '\0', sizeof(secret));
+//		memset(secret, '\0', sizeof(secret));
+                secret.empty();
 		return ERROR_RC;
 	}
 
-	result = rc_check_reply (recv_auth, BUFFER_LEN, secret, vector, data->seq_nbr);
+	result = rc_check_reply (recv_auth, BUFFER_LEN, secret.c_str(), vector, data->seq_nbr);
 
 	length = ntohs(recv_auth->length)  - AUTH_HDR_LEN;
 	if (length > 0) {
@@ -369,8 +379,9 @@ int rc_send_server (rc_handle *rh, SEND_DATA *data, char *msg)
 	}
 
 	close (sockfd);
-	memset (secret, '\0', sizeof (secret));
-
+//	memset (secret, '\0', sizeof (secret));
+        secret.clear();
+        
 	if (result != OK_RC) return result;
 
 	*msg = '\0';
@@ -414,7 +425,7 @@ int rc_send_server (rc_handle *rh, SEND_DATA *data, char *msg)
  *
  */
 
-static int rc_check_reply (AUTH_HDR *auth, int bufferlen, char *secret, unsigned char *vector, uint8_t seq_nbr)
+static int rc_check_reply (AUTH_HDR *auth, int bufferlen, const char *secret, unsigned char *vector, uint8_t seq_nbr)
 {
 	int             secretlen;
 	int             totallen;

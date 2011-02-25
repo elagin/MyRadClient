@@ -75,4 +75,6 @@ void	 MD5Transform(uint32_t [4], const uint8_t [MD5_BLOCK_LENGTH])
 /*		__attribute__((__bounded__(__minbytes__,2,MD5_BLOCK_LENGTH)))*/;
 /* __END_DECLS */
 
+//void rc_md5_calc(unsigned char *output, unsigned char *input, size_t inputlen);
+
 #endif /* _RCRAD_MD5_H */

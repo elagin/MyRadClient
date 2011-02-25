@@ -10,13 +10,12 @@
  *  If we don't do this, it might pick up the systems broken MD5.
  *  - Alan DeKok <aland@ox.org>
  */
+//#include "freeradius-client.h"
 #include "md5.h"
 
-void rc_md5_calc(unsigned char *output, unsigned char *input,
-		     size_t inputlen);
+//void rc_md5_calc(unsigned char *output, unsigned char *input, size_t inputlen);
 
-void rc_md5_calc(unsigned char *output, unsigned char *input,
-		     size_t inlen)
+void rc_md5_calc(unsigned char *output, unsigned char *input, size_t inlen)
 {
 	MD5_CTX	context;
 

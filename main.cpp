@@ -1,7 +1,7 @@
-using namespace std;
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+//#include <string.h>
 //#include <sys/socket.h>
 
 #include <netinet/in.h>
@@ -9,12 +9,12 @@ using namespace std;
 #include <signal.h>
 #include <iostream>
 //#include <fstream>
-
+using namespace std;
 
 //#include	"conf.h"
-#include	"includes.h"
+//#include	"includes.h"
 #include	"freeradius-client.h"
-#include	"pathnames.h"
+//#include	"pathnames.h"
 //#include        <dict.h>
 
 //#include "headers.h"
@@ -172,6 +172,11 @@ VALUE_PAIR *rc_avpair_add (const rc_handle *rh, VALUE_PAIR **list, int attrid, c
 }
 */
 
+struct test2{
+    string aa;
+    string bb;
+};
+
 int main (int argc, char **argv)
 {
     int             result;
@@ -186,11 +191,15 @@ int main (int argc, char **argv)
     char 		msg[4096];
     char conf_file[] = "/usr/local/etc/radiusclient/radiusclient.conf";
     char dic[] = "dictionary";
+
+    string host = "192.168.10.102";
 //        string conf_file = "/usr/local/etc/radiusclient/radiusclient.conf";
 
 
     if ((rh = rc_read_config(conf_file)) == NULL)
-            return ERROR_RC;
+    {
+        return ERROR_RC;
+    }
 
     if (rc_read_dictionary(rh, rc_conf_str(rh, dic)) != 0)
             return ERROR_RC;
@@ -207,7 +216,7 @@ int main (int argc, char **argv)
             return ERROR_RC;
 
     fprintf(stdout, "msg: %s\n", msg);
-    result = rc_auth(rh, 0, send, &received, msg);
+    result = rc_auth(rh, host.c_str(), 0, send, &received, msg);
 
     if (result == OK_RC)
     {

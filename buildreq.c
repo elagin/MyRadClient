@@ -23,11 +23,10 @@ unsigned char rc_get_seqnbr(rc_handle *);
  *
  */
 
-void rc_buildreq(rc_handle *rh, SEND_DATA *data, int code, char *server, unsigned short port, 
-		 char *secret, int timeout, int retries)
+void rc_buildreq(rc_handle *rh, SEND_DATA *data, int code, const string & server, unsigned short port, const char *secret, int timeout, int retries)
 {
-//	data->server = server;
-	data->server = "192.168.10.102";
+	data->server = server;
+//	data->server = "192.168.10.102";
 //	data->secret = "secret";
 	data->secret = secret;
 	data->svc_port = port;
@@ -122,14 +121,15 @@ unsigned char rc_get_seqnbr(rc_handle *rh)
  *
  */
 
-int rc_aaa(rc_handle *rh, uint32_t client_port, VALUE_PAIR *send, VALUE_PAIR **received, char *msg, int add_nas_port, int request_type)
+//int rc_aaa(rc_handle *rh, char *host, uint32_t client_port, VALUE_PAIR *send, VALUE_PAIR **received, char *msg, int add_nas_port, int request_type)
+int rc_aaa(rc_handle *rh, const string & host, uint32_t client_port, VALUE_PAIR *send, VALUE_PAIR **received, char *msg, int add_nas_port, int request_type)
 {
         fprintf(stdout, "rc_aaa::Start\n");
 	SEND_DATA       data;
 	VALUE_PAIR	*adt_vp;
 	int		result;
 	int		i, skip_count;
-	SERVER		*aaaserver;
+	SERVER		aaaserver;
 	int		timeout = rc_conf_int(rh, "radius_timeout");
 	int		retries = rc_conf_int(rh, "radius_retries");
 	int		radius_deadtime = rc_conf_int(rh, "radius_deadtime");
@@ -138,25 +138,34 @@ int rc_aaa(rc_handle *rh, uint32_t client_port, VALUE_PAIR *send, VALUE_PAIR **r
 
 	if (request_type != PW_ACCOUNTING_REQUEST)
         {
-		aaaserver = rc_conf_srv(rh, "authserver");
-                fprintf(stdout, "rc_aaa::authserver\n");
+//		aaaserver = rc_conf_srv(rh, "authserver");
+//                fprintf(stdout, "rc_aaa::authserver\n");
+//		 rc_conf_srv(rh, "authserver", &aaaserver);
+            
+//            aaaserver.name = host;
 	}
         else
         {
-		aaaserver = rc_conf_srv(rh, "acctserver");
-                fprintf(stdout, "rc_aaa::acctserver\n");
+//		aaaserver = rc_conf_srv(rh, "acctserver");
+//                fprintf(stdout, "rc_aaa::acctserver\n");
 	}
         
 //        char srvName[15] = "192.168.10.102";
-//        strcpy(srvName ,aaaserver->name);
+//        strcpy(srvName ,aaaserver.name);
 //        fprintf(stdout, "srvName: %s\n", srvName);
-//        fprintf(stdout, "aaaserver->name: %s\n", aaaserver->name);
-        
+//        fprintf(stdout, "aaaserver.name: %s\n", aaaserver.name);
+
+/*
 	if (aaaserver == NULL)
         {
             return ERROR_RC;
         }
-
+*/
+        if( !host.empty() )
+        {
+            aaaserver.name = host;
+        }
+        
 	data.send_pairs = send;
 	data.receive_pairs = NULL;
 
@@ -164,8 +173,7 @@ int rc_aaa(rc_handle *rh, uint32_t client_port, VALUE_PAIR *send, VALUE_PAIR **r
 		/*
 		 * Fill in NAS-Port
 		 */
-		if (rc_avpair_add(rh, &(data.send_pairs), PW_NAS_PORT,
-		    &client_port, 0, 0) == NULL)
+		if (rc_avpair_add(rh, &(data.send_pairs), PW_NAS_PORT, &client_port, 0, 0) == NULL)
 			return ERROR_RC;
 	}
 
@@ -174,33 +182,33 @@ int rc_aaa(rc_handle *rh, uint32_t client_port, VALUE_PAIR *send, VALUE_PAIR **r
 		 * Fill in Acct-Delay-Time
 		 */
 		dtime = 0;
-		if ((adt_vp = rc_avpair_add(rh, &(data.send_pairs),
-		    PW_ACCT_DELAY_TIME, &dtime, 0, 0)) == NULL)
+		if ((adt_vp = rc_avpair_add(rh, &(data.send_pairs), PW_ACCT_DELAY_TIME, &dtime, 0, 0)) == NULL)
 			return ERROR_RC;
 	}
 
 	start_time = rc_getctime();
 	skip_count = 0;
 	result = ERROR_RC;
-//        fprintf(stdout, "rc_aaa::aaaserver->max %d\n", aaaserver->max);
-	for (i=0; (i < aaaserver->max) && (result != OK_RC) && (result != BADRESP_RC)
-	    ; i++)
+//        fprintf(stdout, "rc_aaa::aaaserver.max %d\n", aaaserver.max);
+        aaaserver.max = 1;
+	for (i=0; (i < aaaserver.max) && (result != OK_RC) && (result != BADRESP_RC); i++)
 	{
-		if (aaaserver->deadtime_ends[i] != -1 &&
-		    aaaserver->deadtime_ends[i] > start_time) {
+		if (aaaserver.deadtime_ends != -1 && aaaserver.deadtime_ends > start_time)
+                {
 			skip_count++;
 			continue;
 		}
-		if (data.receive_pairs != NULL) {
+		if (data.receive_pairs != NULL)
+                {
 			rc_avpair_free(data.receive_pairs);
 			data.receive_pairs = NULL;
 		}
                 
-		rc_buildreq(rh, &data, request_type, aaaserver->name[i], aaaserver->port[i], aaaserver->secret[i], timeout, retries);
-                fprintf(stdout, "rc_buildreq:  data.server: %s\n", data.server);
-                fprintf(stdout, "rc_buildreq:  data.secret: %s\n", data.secret);
+		rc_buildreq(rh, &data, request_type, aaaserver.name.c_str(), aaaserver.port, aaaserver.secret.c_str(), timeout, retries);
+                fprintf(stdout, "rc_buildreq:  data.server: %s\n", data.server.c_str());
+                fprintf(stdout, "rc_buildreq:  data.secret: %s\n", data.secret.c_str());
                 fprintf(stdout, "rc_buildreq:  data.svc_port: %i\n", data.svc_port);
-//                fprintf(stdout, "aaaserver->name %s, port: %s, secert %s\n", aaaserver->name[i], aaaserver->port[i], aaaserver->secret[i]);
+//                fprintf(stdout, "aaaserver.name %s, port: %s, secert %s\n", aaaserver.name[i], aaaserver.port[i], aaaserver.secret[i]);
 
 		if (request_type == PW_ACCOUNTING_REQUEST) {
 			dtime = rc_getctime() - start_time;
@@ -209,25 +217,24 @@ int rc_aaa(rc_handle *rh, uint32_t client_port, VALUE_PAIR *send, VALUE_PAIR **r
 
 		result = rc_send_server (rh, &data, msg);
 		if (result == TIMEOUT_RC && radius_deadtime > 0)
-			aaaserver->deadtime_ends[i] = start_time + (double)radius_deadtime;
+			aaaserver.deadtime_ends = start_time + (double)radius_deadtime;
 	}
 	if (result == OK_RC || result == BADRESP_RC || skip_count == 0)
 		goto exit;
 
 	result = ERROR_RC;
-	for (i=0; (i < aaaserver->max) && (result != OK_RC) && (result != BADRESP_RC)
+	for (i=0; (i < aaaserver.max) && (result != OK_RC) && (result != BADRESP_RC)
 	    ; i++)
 	{
-		if (aaaserver->deadtime_ends[i] == -1 ||
-		    aaaserver->deadtime_ends[i] <= start_time) {
+		if (aaaserver.deadtime_ends == -1 ||
+		    aaaserver.deadtime_ends <= start_time) {
 			continue;
 		}
 		if (data.receive_pairs != NULL) {
 			rc_avpair_free(data.receive_pairs);
 			data.receive_pairs = NULL;
 		}
-		rc_buildreq(rh, &data, request_type, aaaserver->name[i],
-		    aaaserver->port[i], aaaserver->secret[i], timeout, retries);
+		rc_buildreq(rh, &data, request_type, aaaserver.name.c_str(), aaaserver.port, aaaserver.secret.c_str(), timeout, retries);
 
 		if (request_type == PW_ACCOUNTING_REQUEST) {
 			dtime = rc_getctime() - start_time;
@@ -237,7 +244,7 @@ int rc_aaa(rc_handle *rh, uint32_t client_port, VALUE_PAIR *send, VALUE_PAIR **r
 		result = rc_send_server (rh, &data, msg);
                 fprintf(stdout, "rc_aaa::rc_send_server End\n");
 		if (result != TIMEOUT_RC)
-			aaaserver->deadtime_ends[i] = -1;
+			aaaserver.deadtime_ends = -1;
 	}
 
 exit:
@@ -261,11 +268,10 @@ exit:
  *
  */
 
-int rc_auth(rc_handle *rh, uint32_t client_port, VALUE_PAIR *send, VALUE_PAIR **received,
-    char *msg)
+int rc_auth(rc_handle *rh, const string & host, uint32_t client_port, VALUE_PAIR *send, VALUE_PAIR **received, char *msg)
 {
 
-	return rc_aaa(rh, client_port, send, received, msg, 1, PW_ACCESS_REQUEST);
+	return rc_aaa(rh, host, client_port, send, received, msg, 1, PW_ACCESS_REQUEST);
 }
 
 /*
@@ -284,7 +290,7 @@ int rc_auth(rc_handle *rh, uint32_t client_port, VALUE_PAIR *send, VALUE_PAIR **
 int rc_auth_proxy(rc_handle *rh, VALUE_PAIR *send, VALUE_PAIR **received, char *msg)
 {
 
-	return rc_aaa(rh, 0, send, received, msg, 0, PW_ACCESS_REQUEST);
+	return rc_aaa(rh, 0, 0, send, received, msg, 0, PW_ACCESS_REQUEST);
 }
 
 
@@ -302,7 +308,7 @@ int rc_acct(rc_handle *rh, uint32_t client_port, VALUE_PAIR *send)
 {
 	char		msg[4096];
 
-	return rc_aaa(rh, client_port, send, NULL, msg, 1, PW_ACCOUNTING_REQUEST);
+	return rc_aaa(rh, 0, client_port, send, NULL, msg, 1, PW_ACCOUNTING_REQUEST);
 }
 
 /*
@@ -316,7 +322,7 @@ int rc_acct_proxy(rc_handle *rh, VALUE_PAIR *send)
 {
 	char		msg[4096];
 
-	return rc_aaa(rh, 0, send, NULL, msg, 0, PW_ACCOUNTING_REQUEST);
+	return rc_aaa(rh, 0, 0, send, NULL, msg, 0, PW_ACCOUNTING_REQUEST);
 }
 
 /*

@@ -109,7 +109,7 @@ VALUE_PAIR *rc_avpair_new (const rc_handle *rh, int attrid, const void *pval, in
 		// rc_log(LOG_ERR,"rc_avpair_new: unknown Vendor-Id %d", vendorpec);
 		return NULL;
 	}
-	if ((vp = malloc (sizeof (VALUE_PAIR))) != NULL)
+	if ((vp = (VALUE_PAIR*)malloc (sizeof (VALUE_PAIR))) != NULL)
 	{
 		strncpy (vp->name, pda->name, sizeof (vp->name));
 		vp->attribute = attrid;
@@ -235,7 +235,7 @@ rc_avpair_gen(const rc_handle *rh, VALUE_PAIR *pair, unsigned char *ptr,
 		goto shithappens;
 	}
 
-	rpair = malloc(sizeof(*rpair));
+	rpair = (VALUE_PAIR*)malloc(sizeof(*rpair));
 	if (rpair == NULL) {
 		// rc_log(LOG_CRIT, "rc_avpair_gen: out of memory");
 		goto shithappens;
@@ -500,7 +500,7 @@ int rc_avpair_parse (const rc_handle *rh, char *buffer, VALUE_PAIR **first_pair)
 		    case PARSE_MODE_VALUE:		/* Value */
 			rc_fieldcpy (valstr, &buffer, " \t\n,", sizeof(valstr));
 
-			if ((pair = malloc (sizeof (VALUE_PAIR))) == NULL)
+			if ((pair = (VALUE_PAIR*)malloc (sizeof (VALUE_PAIR))) == NULL)
 			{
 				// rc_log(LOG_CRIT, "rc_avpair_parse: out of memory");
 				if (*first_pair) {
@@ -547,6 +547,7 @@ int rc_avpair_parse (const rc_handle *rh, char *buffer, VALUE_PAIR **first_pair)
 				break;
 
 			    case PW_TYPE_IPADDR:
+
                                 pair->lvalue = rc_get_ipaddr(valstr);
 				break;
 
@@ -733,7 +734,7 @@ rc_avpair_log(rc_handle *rh, VALUE_PAIR *pair)
 		    sizeof(value)) == -1)
 		        return NULL;
 		nlen = len + 32 + 3 + strlen(value) + 2 + 2;
-		cp = realloc(rh->ppbuf, nlen);
+		cp = (char*)realloc(rh->ppbuf, nlen);
 		if (cp == NULL) {
 			// rc_log(LOG_ERR, "rc_avpair_log: can't allocate memory");
 			return NULL;

@@ -144,7 +144,7 @@ int rc_read_dictionary (rc_handle *rh, const char *filename)
 			}
 
 			/* Create a new attribute for the list */
-			if ((attr = malloc (sizeof (DICT_ATTR))) == NULL)
+			if ((attr = (DICT_ATTR*)malloc (sizeof (DICT_ATTR))) == NULL)
 			{
 				// rc_log(LOG_CRIT, "rc_read_dictionary: out of memory");
 				fclose(dictfd);
@@ -198,7 +198,7 @@ int rc_read_dictionary (rc_handle *rh, const char *filename)
 			value = atoi (valstr);
 
 			/* Create a new VALUE entry for the list */
-			if ((dval = malloc (sizeof (DICT_VALUE))) == NULL)
+			if ((dval = (DICT_VALUE*)malloc (sizeof (DICT_VALUE))) == NULL)
 			{
 				// rc_log(LOG_CRIT, "rc_read_dictionary: out of memory");
 				fclose(dictfd);
@@ -224,9 +224,10 @@ int rc_read_dictionary (rc_handle *rh, const char *filename)
 			ifilename = namestr;
 			/* Append directory if necessary */
 			if (namestr[0] != '/') {
-				cp = strrchr(filename, '/');
+//                            char slash[] = "/";
+				cp = strrchr((char *)filename, '/');
 				if (cp != NULL) {
-					ifilename = alloca(AUTH_ID_LEN);
+					ifilename = (char*)alloca(AUTH_ID_LEN);
 					*cp = '\0';
 					sprintf(ifilename, "%s/%s", filename, namestr);
 					*cp = '/';
@@ -265,7 +266,7 @@ int rc_read_dictionary (rc_handle *rh, const char *filename)
 			value = atoi (valstr);
 
 			/* Create a new VENDOR entry for the list */
-			dvend = malloc(sizeof(DICT_VENDOR));
+			dvend = (DICT_VENDOR*)malloc(sizeof(DICT_VENDOR));
 			if (dvend == NULL)
 			{
 				// rc_log(LOG_CRIT, "rc_read_dictionary: out of memory");

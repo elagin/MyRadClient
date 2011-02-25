@@ -1,128 +1,115 @@
+# Makefile for GNU make
 #
-#  There exist several targets which are by default empty and which can be 
-#  used for execution of your targets. These targets are usually executed 
-#  before and after some main targets. They are: 
-#
-#     .build-pre:              called before 'build' target
-#     .build-post:             called after 'build' target
-#     .clean-pre:              called before 'clean' target
-#     .clean-post:             called after 'clean' target
-#     .clobber-pre:            called before 'clobber' target
-#     .clobber-post:           called after 'clobber' target
-#     .all-pre:                called before 'all' target
-#     .all-post:               called after 'all' target
-#     .help-pre:               called before 'help' target
-#     .help-post:              called after 'help' target
-#
-#  Targets beginning with '.' are not intended to be called on their own.
-#
-#  Main targets can be executed directly, and they are:
-#  
-#     build                    build a specific configuration
-#     clean                    remove built files from a configuration
-#     clobber                  remove all built files
-#     all                      build all configurations
-#     help                     print help mesage
-#  
-#  Targets .build-impl, .clean-impl, .clobber-impl, .all-impl, and
-#  .help-impl are implemented in nbproject/makefile-impl.mk.
-#
-#  Available make variables:
-#
-#     CND_BASEDIR                base directory for relative paths
-#     CND_DISTDIR                default top distribution directory (build artifacts)
-#     CND_BUILDDIR               default top build directory (object files, ...)
-#     CONF                       name of current configuration
-#     CND_PLATFORM_${CONF}       platform name (current configuration)
-#     CND_ARTIFACT_DIR_${CONF}   directory of build artifact (current configuration)
-#     CND_ARTIFACT_NAME_${CONF}  name of build artifact (current configuration)
-#     CND_ARTIFACT_PATH_${CONF}  path to build artifact (current configuration)
-#     CND_PACKAGE_DIR_${CONF}    directory of package (current configuration)
-#     CND_PACKAGE_NAME_${CONF}   name of package (current configuration)
-#     CND_PACKAGE_PATH_${CONF}   path to package (current configuration)
-#
-# NOCDDL
+# Common Unix flags
+#EXECUTABLE=myradclient
+EXECUTABLE=${CND_DISTDIR}/myradclient
+CFLAGS=-MMD -DWITH_OPENSSL -DWITH_GZIP -D_FILE_OFFSET_BITS=64 -DMT -DLB_MODULE_NAME=\"$(EXECUTABLE)\" -fomit-frame-pointer
 
+LDFLAGS=
+#/usr/lib/libboost_thread-mt.a -L/usr/local/instantclient_11_2 -locci -lclntsh -lm -lz -lcrypto -lssl -lrt
+CC=g++
+FOUT=-o
+LINK=$(CC) -o $(BUILD_DIR)/$(EXECUTABLE)
+STRIP=strip
+BUILD_DIR=build
+#SUBDIRS=collect_data settings dbconnection db_tables common api server_thread sha1 soap_wrapper
+SUBDIRS=
+DEPS=$(BUILD_DIR)/main.o $(BUILD_DIR)/config.o $(BUILD_DIR)/util.o $(BUILD_DIR)/clientid.o $(BUILD_DIR)/dict.o $(BUILD_DIR)/sendserver.o \
+$(BUILD_DIR)/avpair.o $(BUILD_DIR)/ip_util.o $(BUILD_DIR)/buildreq.o $(BUILD_DIR)/lock.o $(BUILD_DIR)/md5.o
 
-# Environment 
-MKDIR=mkdir
-CP=cp
-CCADMIN=CCadmin
+OBJECTS := $(wildcard $(BUILD_DIR)/*.o)
+VPATH=
+#../Lblib:../xmlapi:../Lblib/common
+LD_LIBRARY_PATH=
+#/usr/local/instantclient_11_2
+ALLD=alld
 
+##### OS detect
+OS=$(shell uname)
+ifeq ($(OS), Linux)
+# Linux stuff
+CFLAGS+=-DLINUX
+LDFLAGS+=-ldl
+MAKE=make
+else
+$(error Unknown OS)
+endif
+##### end of OS detect
 
-# build
-build: .build-post
+# Detect platform
+MACHINE=$(shell uname -m)
+ifeq ($(MACHINE), i686)
+LDFLAGS+=/usr/lib/gcc/i486-linux-gnu/4.4.3/libstdc++.a
+else
+ifeq ($(MACHINE), x86_64)
+LDFLAGS+=/usr/lib/gcc/x86_64-pc-linux-gnu/4.3.4/libstdc++.a
+else
+$(error Unknown OS)
+endif
+endif
 
-.build-pre:
-# Add your pre 'build' code here...
+# Add debug flags for 'make debug'
+CFLAGS+=-ggdb3
+ifdef DEBUG
+CFLAGS+=-DDEBUG -DNOCHECKLIC -Wall -O0
+else
+CFLAGS+=-O2 -DNDEBUG -w
+endif
 
-.build-post: .build-impl
-# Add your post 'build' code here...
+CFLAGS+=$(LBFLAGS)
+export CC
+export CFLAGS
+export BUILD_DIR
+export FOUT
+export LD_LIBRARY_PATH
 
+release: all strip
 
-# clean
-clean: .clean-post
+.PHONY: strip
 
-.clean-pre:
-# Add your pre 'clean' code here...
+strip: $(BUILD_DIR)/$(EXECUTABLE).debuginfo
 
-.clean-post: .clean-impl
-# Add your post 'clean' code here...
+$(BUILD_DIR)/$(EXECUTABLE).debuginfo: $(OBJECTS)
+	objcopy --only-keep-debug $(BUILD_DIR)/$(EXECUTABLE) $(BUILD_DIR)/$(EXECUTABLE).debuginfo
+	$(STRIP) $(BUILD_DIR)/$(EXECUTABLE)
+	objcopy --add-gnu-debuglink $(BUILD_DIR)/$(EXECUTABLE).debuginfo $(BUILD_DIR)/$(EXECUTABLE)
 
+.PHONY: subdirs $(SUBDIRS)
 
-# clobber
-clobber: .clobber-post
+subdirs: $(SUBDIRS)
 
-.clobber-pre:
-# Add your pre 'clobber' code here...
+$(SUBDIRS):
+	$(MAKE) -C $@
 
-.clobber-post: .clobber-impl
-# Add your post 'clobber' code here...
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
+.PHONY: all
+all: $(BUILD_DIR) subdirs $(BUILD_DIR)/$(EXECUTABLE) 
 
-# all
-all: .all-post
+$(BUILD_DIR)/$(EXECUTABLE): $(DEPS) $(OBJECTS)
+	$(LINK) $(BUILD_DIR)/*.o $(LDFLAGS)
 
-.all-pre:
-# Add your pre 'all' code here...
+$(BUILD_DIR)/%.o: %.cpp
+	$(CC) $(CFLAGS) -c -MF $(BUILD_DIR)/$*.d $< $(FOUT)$@
+	@cp $(BUILD_DIR)/$*.d $(BUILD_DIR)/$*.P; \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' \
+			-e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' \
+			< $(BUILD_DIR)/$*.d >> $(BUILD_DIR)/$*.P; \
+		rm -f $(BUILD_DIR)/$*.d
 
-.all-post: .all-impl
-# Add your post 'all' code here...
+$(BUILD_DIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c -MF $(BUILD_DIR)/$*.d $< $(FOUT)$@
+	@cp $(BUILD_DIR)/$*.d $(BUILD_DIR)/$*.P; \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' \
+			-e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' \
+			< $(BUILD_DIR)/$*.d >> $(BUILD_DIR)/$*.P; \
+		rm -f $(BUILD_DIR)/$*.d
 
+-include $(DEPS:%.o=%.P)
 
-# build tests
-build-tests: .build-tests-post
-
-.build-tests-pre:
-# Add your pre 'build-tests' code here...
-
-.build-tests-post: .build-tests-impl
-# Add your post 'build-tests' code here...
-
-
-# run tests
-test: .test-post
-
-.test-pre:
-# Add your pre 'test' code here...
-
-.test-post: .test-impl
-# Add your post 'test' code here...
-
-
-# help
-help: .help-post
-
-.help-pre:
-# Add your pre 'help' code here...
-
-.help-post: .help-impl
-# Add your post 'help' code here...
-
-
-
-# include project implementation makefile
-include nbproject/Makefile-impl.mk
-
-# include project make variables
-include nbproject/Makefile-variables.mk
+debug:
+	DEBUG=1 $(MAKE) all
+	
+clean:
+	rm -rf $(BUILD_DIR) $(EXECUTABLE) $(EXECUTABLE).debuginfo

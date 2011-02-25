@@ -15,17 +15,11 @@
                    displayName="Source Files"
                    projectFiles="true"
                    kind="SOURCE_LOGICAL_FOLDER">
-      <itemPath>avpair.c</itemPath>
-      <itemPath>buildreq.c</itemPath>
-      <itemPath>clientid.c</itemPath>
-      <itemPath>config.c</itemPath>
-      <itemPath>dict.c</itemPath>
-      <itemPath>ip_util.c</itemPath>
-      <itemPath>lock.c</itemPath>
+      <itemPath>clientid.cpp</itemPath>
+      <itemPath>config.cpp</itemPath>
+      <itemPath>ip_util.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
-      <itemPath>md5.c</itemPath>
-      <itemPath>sendserver.c</itemPath>
-      <itemPath>util.c</itemPath>
+      <itemPath>md5.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -51,7 +45,23 @@
         <cTool>
           <commandlineTool>gcc</commandlineTool>
         </cTool>
+        <linkerTool>
+          <output>build/myradclient</output>
+          <commandlineTool>g++</commandlineTool>
+        </linkerTool>
       </compileType>
+      <packaging>
+        <packType>Tar</packType>
+        <output>${CND_DISTDIR}/package/myradclient.tar</output>
+        <packFileList>
+          <packFileListElem type="File"
+                            to="${PACKAGE_TOP_DIR}bin/${OUTPUT_BASENAME}"
+                            from="${OUTPUT_PATH}"
+                            perm="755"
+                            owner="root"
+                            group="bin"/>
+        </packFileList>
+      </packaging>
     </conf>
     <conf name="Release" type="1">
       <toolsSet>

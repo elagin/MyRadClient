@@ -11,7 +11,7 @@ CND_CONF=Debug
 CND_DISTDIR=dist
 NBTMPDIR=build/${CND_CONF}/${CND_PLATFORM}/tmp-packaging
 TMPDIRNAME=tmp-packaging
-OUTPUT_PATH=${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/myradclient
+OUTPUT_PATH=build/myradclient
 OUTPUT_BASENAME=myradclient
 PACKAGE_TOP_DIR=myradclient/
 
@@ -52,7 +52,7 @@ function copyFileToTmpDir
 
 # Setup
 cd "${TOP}"
-mkdir -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/package
+mkdir -p ${CND_DISTDIR}/package
 rm -rf ${NBTMPDIR}
 mkdir -p ${NBTMPDIR}
 
@@ -64,9 +64,9 @@ copyFileToTmpDir "${OUTPUT_PATH}" "${NBTMPDIR}/${PACKAGE_TOP_DIR}bin/${OUTPUT_BA
 
 # Generate tar file
 cd "${TOP}"
-rm -f ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/package/myradclient.tar
+rm -f ${CND_DISTDIR}/package/myradclient.tar
 cd ${NBTMPDIR}
-tar -vcf ../../../../${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/package/myradclient.tar *
+tar -vcf ../../../../${CND_DISTDIR}/package/myradclient.tar *
 checkReturnCode
 
 # Cleanup

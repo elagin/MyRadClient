@@ -33,8 +33,8 @@ static OPTION *find_option(rc_handle *rh, const char *optname, unsigned int type
 
 	/* there're so few options that a binary search seems not necessary */
 	for (i = 0; i < NUM_OPTIONS; i++) {
-		if (!strcmp(rh->config_options[i].name, optname) &&
-		    (rh->config_options[i].type & type)) 
+		if (!strcmp(rh->config_options[i].name, optname)
+                        && (rh->config_options[i].type & type))
 		{
 		    	return &rh->config_options[i];
 		}
@@ -75,7 +75,10 @@ static int set_option_int(const char *filename, int line, OPTION *option, const 
 		return -1;
 	}
 
-	if ((iptr = malloc(sizeof(*iptr))) == NULL) {
+        iptr = (int *)malloc(sizeof(*iptr));
+
+	if(iptr == NULL )
+        {
 		// rc_log(LOG_CRIT, "read_config: out of memory");
 		return -1;
 	}
@@ -95,7 +98,7 @@ static int set_option_srv(const char *filename, int line, OPTION *option, const 
 	char *q;
 	char *s;
 	struct servent *svp;
-
+/*
 	p_dupe = strdup(p);
 
 	if (p_dupe == NULL) {
@@ -105,8 +108,8 @@ static int set_option_srv(const char *filename, int line, OPTION *option, const 
 
 	serv = (SERVER *) option->val;
 	if (serv == NULL) {
-		DEBUG(LOG_ERR, "option->val / server is NULL, allocating memory");
-		serv = malloc(sizeof(*serv));
+//		DEBUG(LOG_ERR, "option->val / server is NULL, allocating memory");
+		serv = (SERVER *)malloc(sizeof(*serv));
 		if (serv == NULL) {
 			// rc_log(LOG_CRIT, "read_config: out of memory");
 			free(p_dupe);
@@ -117,24 +120,27 @@ static int set_option_srv(const char *filename, int line, OPTION *option, const 
 
 	p_pointer = strtok_r(p_dupe, ", \t", &p_save);
 
-	/* Check to see if we have 'servername:port' syntax */
+	// Check to see if we have 'servername:port' syntax
 	if ((q = strchr(p_pointer,':')) != NULL) {
 		*q = '\0';
 		q++;
 		
-		/* Check to see if we have 'servername:port:secret' syntax */
+		// Check to see if we have 'servername:port:secret' syntax 
 		if((s = strchr(q,':')) != NULL) {
 			*s = '\0';
 			s++;
 			serv->secret[serv->max] = strdup(s);			
-			if (serv->secret[serv->max] == NULL) {
+// zz
+//			if (serv->secret[serv->max] == NULL)
+//                        {
 				// rc_log(LOG_CRIT, "read_config: out of memory");
-				if (option->val == NULL) {
-					free(p_dupe);
-					free(serv);
-				}
-				return -1;
-			}
+//				if (option->val == NULL) {
+//					free(p_dupe);
+//					free(serv);
+//				}
+//				return -1;
+//			}
+ 
 		}
 	}
 	if(q && strlen(q) > 0) {
@@ -161,14 +167,15 @@ static int set_option_srv(const char *filename, int line, OPTION *option, const 
 	}
 
 	serv->name[serv->max] = strdup(p_pointer);
-	if (serv->name[serv->max] == NULL) {
-		// rc_log(LOG_CRIT, "read_config: out of memory");
-		if (option->val == NULL) {
-			free(p_dupe);
-			free(serv);
-		}
-		return -1;
-	}
+// zz
+//	if (serv->name[serv->max] == NULL) {
+//		// rc_log(LOG_CRIT, "read_config: out of memory");
+//		if (option->val == NULL) {
+//			free(p_dupe);
+//			free(serv);
+//		}
+//		return -1;
+//	}
 	free(p_dupe);
 
 	serv->deadtime_ends[serv->max] = -1;
@@ -176,7 +183,7 @@ static int set_option_srv(const char *filename, int line, OPTION *option, const 
 
 	if (option->val == NULL)
 		option->val = (void *)serv;
-
+*/
 	return 0;
 }
 
@@ -193,16 +200,17 @@ static int set_option_auo(const char *filename, int line, OPTION *option, const 
 		// rc_log(LOG_WARNING, "%s: line %d: bogus option value", filename, line);
 		return -1;
 	}
-
-	if ((iptr = malloc(sizeof(iptr))) == NULL) {
+        iptr = (int *)malloc(sizeof(iptr));
+	if(iptr == NULL)
+        {
 			// rc_log(LOG_CRIT, "read_config: out of memory");
 			return -1;
 	}
 
 	*iptr = 0;
-	/*if(strstr(p_dupe,", \t") != NULL) {*/
+	//if(strstr(p_dupe,", \t") != NULL) {
 		p_pointer = strtok_r(p_dupe, ", \t", &p_save);
-	/*}*/
+	//}
 
 	if (!strncmp(p_pointer, "local", 5))
 			*iptr = AUTH_LOCAL_FST;
@@ -241,7 +249,7 @@ static int set_option_auo(const char *filename, int line, OPTION *option, const 
  * 
  * Returns: 0 on success, -1 on failure
  */
-
+/*
 int rc_add_config(rc_handle *rh, const char *option_name, const char *option_val, const char *source, const int line)
 {
 	OPTION *option;
@@ -285,7 +293,7 @@ int rc_add_config(rc_handle *rh, const char *option_name, const char *option_val
 	}
 	return 0;
 }
-
+*/
 /*
  * Function: rc_config_init
  * 
@@ -294,9 +302,8 @@ int rc_add_config(rc_handle *rh, const char *option_name, const char *option_val
  * 
  * Returns: rc_handle on success, NULL on failure
  */
-
-rc_handle *
-rc_config_init(rc_handle *rh)
+/*
+rc_handle * rc_config_init(rc_handle *rh)
 {
 	int i;
 	SERVER *authservers;
@@ -336,7 +343,7 @@ rc_config_init(rc_handle *rh)
 	} 
 	return rh;
 }
-
+*/
 
 /*
  * Function: rc_read_config
@@ -346,8 +353,7 @@ rc_config_init(rc_handle *rh)
  * Returns: new rc_handle on success, NULL when failure
  */
 
-rc_handle *
-rc_read_config(char *filename)
+rc_handle * rc_read_config(char *filename)
 {
         fprintf(stdout, "filename: %s\n", filename);
 
@@ -362,8 +368,9 @@ rc_read_config(char *filename)
 	if (rh == NULL)
 		return NULL;
 
-        rh->config_options = malloc(sizeof(config_options_default));
-        if (rh->config_options == NULL) {
+        rh->config_options = (_option*)malloc(sizeof(config_options_default));
+        if (rh->config_options == NULL)
+        {
                 // rc_log(LOG_CRIT, "rc_read_config: out of memory");
 		rc_destroy(rh);
                 return NULL;
@@ -436,7 +443,8 @@ rc_read_config(char *filename)
 				}
 				break;
 			case OT_SRV:
-				if (set_option_srv(filename, line, option, p) < 0) {
+				if (set_option_srv(filename, line, option, p) < 0)
+                                {
 					fclose(configfd);
 					rc_destroy(rh);
 				 	return NULL;
@@ -463,13 +471,11 @@ rc_read_config(char *filename)
 	return rh;
 }
 
-/*
- * Function: rc_conf_str, rc_conf_int, rc_conf_src
- *
- * Purpose: get the value of a config option
- *
- * Returns: config option value
- */
+
+//Function: rc_conf_str, rc_conf_int, rc_conf_src
+// Purpose: get the value of a config option
+// Returns: config option value
+
 
 char *rc_conf_str(rc_handle *rh, char *optname)
 {
@@ -500,7 +506,42 @@ int rc_conf_int(rc_handle *rh, char *optname)
 		return 0;
 	}
 }
+/*
+typedef struct _option {
+	char name[OPTION_LEN];	  // name of the option
+	int type, status;	  // type and status
+	void *val;		  // pointer to option value
+} OPTION;
 
+typedef struct server {
+	int max;
+	char *name[SERVER_MAX];
+	uint16_t port[SERVER_MAX];
+	char *secret[SERVER_MAX];
+	double deadtime_ends[SERVER_MAX];
+} SERVER;
+*/
+bool rc_conf_srv(rc_handle *rh, char *optname, SERVER * ret)
+{
+	OPTION *option;
+        
+	option = find_option(rh, optname, OT_SRV);
+
+	if (option != NULL)
+        {
+                fprintf(stdout, "rc_conf_srv optname: %s, name: %s\n", optname, option->name);
+//		return (SERVER *)option->val;
+//                return (SERVER *)option->val;
+//                ret.name
+	}
+        else
+        {
+		// rc_log(LOG_CRIT, "rc_conf_srv: unkown config option requested: %s", optname);
+		abort();
+//		return NULL;
+	}
+}
+/*
 SERVER *rc_conf_srv(rc_handle *rh, char *optname)
 {
 	OPTION *option;
@@ -516,7 +557,7 @@ SERVER *rc_conf_srv(rc_handle *rh, char *optname)
 		return NULL;
 	}
 }
-
+*/
 /*
  * Function: test_config
  *
@@ -527,6 +568,7 @@ SERVER *rc_conf_srv(rc_handle *rh, char *optname)
 
 int test_config(rc_handle *rh, char *filename)
 {
+    /*
 #if 0
 	struct stat st;
 	char	    *file;
@@ -618,7 +660,7 @@ int test_config(rc_handle *rh, char *filename)
 		// rc_log(LOG_ERR,"%s: nologin not specified", filename);
 		return -1;
 	}
-
+*/
 	return 0;
 }
 
@@ -735,8 +777,9 @@ rc_is_myname(char *hostname)
  *
  */
 
-int rc_find_server (rc_handle *rh, char *server_name, uint32_t *ip_addr, char *secret)
+int rc_find_server (rc_handle *rh, char *server_name, uint32_t *ip_addr, string & secret)
 {
+/*
 	int		i;
 	size_t          len;
 	int             result = 0;
@@ -747,57 +790,59 @@ int rc_find_server (rc_handle *rh, char *server_name, uint32_t *ip_addr, char *s
 	char            hostnm[AUTH_ID_LEN + 1];
 	char	       *buffer_save;
 	char	       *hostnm_save;
-	SERVER	       *authservers;
-	SERVER	       *acctservers;
+	SERVER	       authservers;
+	SERVER	       acctservers;
 
-	/* Lookup the IP address of the radius server */
+	// Lookup the IP address of the radius server
 	if ((*ip_addr = rc_get_ipaddr (server_name)) == (uint32_t) 0)
 		return -1;
 
-	/* Check to see if the server secret is defined in the rh config */
-	if( (authservers = rc_conf_srv(rh, "authserver")) != NULL ) 
+	// Check to see if the server secret is defined in the rh config
+	if( ( rc_conf_srv(rh, "authserver", &authservers)) != false )
 	{
-		for( i = 0; i < authservers->max; i++ )
+		for( i = 0; i < authservers.max; i++ )
 		{
-			if( (strncmp(server_name, authservers->name[i], strlen(server_name)) == 0) &&
-			    (authservers->secret[i] != NULL) )
+//			if( (strncmp(server_name, authservers.name[i], strlen(server_name)) == 0) && (authservers.secret[i].length() > 0) )
+			if( (strncmp(server_name, authservers.name[i], strlen(server_name)) == 0) && (authservers.secret[i].length() > 0) )
 			{
 				memset (secret, '\0', MAX_SECRET_LENGTH);
-				len = strlen (authservers->secret[i]);
+				len = authservers.secret[i].length();
 				if (len > MAX_SECRET_LENGTH)
 				{
 					len = MAX_SECRET_LENGTH;
 				}
-				strncpy (secret, authservers->secret[i], (size_t) len);
+// zz
+//				strncpy (secret, authservers.secret[i], (size_t) len);
+                                secret.append( authservers.secret[i], MAX_SECRET_LENGTH )
+//				secret[MAX_SECRET_LENGTH] = '\0';
+				return 0;
+			}
+		}
+	}
+
+	if( ( rc_conf_srv(rh, "acctserver", &acctservers)) != false )
+	{
+		for( i = 0; i < acctservers.max; i++ )
+		{
+			if( (strncmp(server_name, acctservers.name[i], strlen(server_name)) == 0) &&
+			    (acctservers.secret[i].length()>0) )
+			{
+				memset (secret, '\0', MAX_SECRET_LENGTH);
+				len = acctservers.secret[i].length();
+				if (len > MAX_SECRET_LENGTH)
+				{
+					len = MAX_SECRET_LENGTH;
+				}
+				strncpy (secret, acctservers.secret[i], (size_t) len);
 				secret[MAX_SECRET_LENGTH] = '\0';
 				return 0;
 			}
 		}
 	}
 
-	if( (acctservers = rc_conf_srv(rh, "acctserver")) != NULL ) 
-	{
-		for( i = 0; i < acctservers->max; i++ )
-		{
-			if( (strncmp(server_name, acctservers->name[i], strlen(server_name)) == 0) &&
-			    (acctservers->secret[i] != NULL) )
-			{
-				memset (secret, '\0', MAX_SECRET_LENGTH);
-				len = strlen (acctservers->secret[i]);
-				if (len > MAX_SECRET_LENGTH)
-				{
-					len = MAX_SECRET_LENGTH;
-				}
-				strncpy (secret, acctservers->secret[i], (size_t) len);
-				secret[MAX_SECRET_LENGTH] = '\0';
-				return 0;
-			}
-		}
-	}
-
-	/* We didn't find it in the rh_config or the servername is too long so look for a 
-	 * servers file to define the secret(s)
-	 */
+	// We didn't find it in the rh_config or the servername is too long so look for a
+	 // servers file to define the secret(s)
+	 
 
 	if ((clientfd = fopen (rc_conf_str(rh, "servers"), "r")) == NULL)
 	{
@@ -810,7 +855,7 @@ int rc_find_server (rc_handle *rh, char *server_name, uint32_t *ip_addr, char *s
 		if (*buffer == '#')
 			continue;
 
-		if ((h = strtok_r(buffer, " \t\n", &buffer_save)) == NULL) /* first hostname */
+		if ((h = strtok_r(buffer, " \t\n", &buffer_save)) == NULL) // first hostname
 			continue;
 
 		memset (hostnm, '\0', AUTH_ID_LEN);
@@ -822,7 +867,7 @@ int rc_find_server (rc_handle *rh, char *server_name, uint32_t *ip_addr, char *s
 		strncpy (hostnm, h, (size_t) len);
 		hostnm[AUTH_ID_LEN] = '\0';
 
-		if ((s = strtok_r (NULL, " \t\n", &buffer_save)) == NULL) /* and secret field */
+		if ((s = strtok_r (NULL, " \t\n", &buffer_save)) == NULL) // and secret field
 			continue;
 
 		memset (secret, '\0', MAX_SECRET_LENGTH);
@@ -834,7 +879,7 @@ int rc_find_server (rc_handle *rh, char *server_name, uint32_t *ip_addr, char *s
 		strncpy (secret, s, (size_t) len);
 		secret[MAX_SECRET_LENGTH] = '\0';
 
-		if (!strchr (hostnm, '/')) /* If single name form */
+		if (!strchr (hostnm, '/')) // If single name form
 		{
 			if (find_match (ip_addr, hostnm) == 0)
 			{
@@ -842,18 +887,18 @@ int rc_find_server (rc_handle *rh, char *server_name, uint32_t *ip_addr, char *s
 				break;
 			}
 		}
-		else /* <name1>/<name2> "paired" form */
+		else // <name1>/<name2> "paired" form
 		{
 			strtok_r(hostnm, "/", &hostnm_save);
 			if (rc_is_myname(hostnm) == 0)
-			{	     /* If we're the 1st name, target is 2nd */
+			{	     // If we're the 1st name, target is 2nd
 				if (find_match (ip_addr, hostnm_save) == 0)
 				{
 					result++;
 					break;
 				}
 			}
-			else	/* If we were 2nd name, target is 1st name */
+			else	//If we were 2nd name, target is 1st name
 			{
 				if (find_match (ip_addr, hostnm) == 0)
 				{
@@ -871,6 +916,7 @@ int rc_find_server (rc_handle *rh, char *server_name, uint32_t *ip_addr, char *s
 		// rc_log(LOG_ERR, "rc_find_server: couldn't find RADIUS server %s in %s",			 server_name, rc_conf_str(rh, "servers"));
 		return -1;
 	}
+ */
 	return 0;
 }
 
@@ -882,8 +928,7 @@ int rc_find_server (rc_handle *rh, char *server_name, uint32_t *ip_addr, char *s
  * Arguments: Radius Client handle
  */
 
-void
-rc_config_free(rc_handle *rh)
+void rc_config_free(rc_handle *rh)
 {
 	int i, j;
 	SERVER *serv;
@@ -896,8 +941,9 @@ rc_config_free(rc_handle *rh)
 			continue;
 		if (rh->config_options[i].type == OT_SRV) {
 		        serv = (SERVER *)rh->config_options[i].val;
-			for (j = 0; j < serv->max; j++)
-				free(serv->name[j]);
+// zz
+//			for (j = 0; j < serv->max; j++)
+//				free(serv->name[j]);
 			free(serv);
 		} else {
 			free(rh->config_options[i].val);

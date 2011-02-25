@@ -44,7 +44,7 @@ struct hostent *rc_gethostbyname(const char *hostname)
 	int	herr;
 	
 	hostbuflen = 1024;
-	tmphostbuf = malloc(hostbuflen);
+	tmphostbuf = (char*)malloc(hostbuflen);
 #endif
 #endif
 
@@ -54,7 +54,7 @@ struct hostent *rc_gethostbyname(const char *hostname)
 	{
 		/* Enlarge the buffer */
 		hostbuflen *= 2;
-		tmphostbuf = realloc(tmphostbuf, hostbuflen);
+		tmphostbuf = (char*)realloc(tmphostbuf, hostbuflen);
 	}
 	free(tmphostbuf);
 #elif defined (GETHOSTBYNAMERSTYLE_SYSV)
@@ -93,7 +93,7 @@ struct hostent *rc_gethostbyaddr(const char *addr, size_t length, int format)
 	int	herr;
 	
 	hostbuflen = 1024;
-	tmphostbuf = malloc(hostbuflen);
+	tmphostbuf = (char*)malloc(hostbuflen);
 #endif
 #endif
 
@@ -104,7 +104,7 @@ struct hostent *rc_gethostbyaddr(const char *addr, size_t length, int format)
 	{
 		/* Enlarge the buffer */
 		hostbuflen *= 2;
-		tmphostbuf = realloc(tmphostbuf, hostbuflen);
+		tmphostbuf = (char*)realloc(tmphostbuf, hostbuflen);
 	}
 	free(tmphostbuf);
 #elif GETHOSTBYADDRSTYLE_SYSV
@@ -132,15 +132,16 @@ struct hostent *rc_gethostbyaddr(const char *addr, size_t length, int format)
  * Returns: 0 on failure
  */
 
-uint32_t rc_get_ipaddr (char *host)
+//uint32_t rc_get_ipaddr (char *host)
+uint32_t rc_get_ipaddr (string host)
 {
 	struct 	hostent *hp;
 
-	if (rc_good_ipaddr (host) == 0)
+	if (rc_good_ipaddr (host.c_str()) == 0)
 	{
-		return ntohl(inet_addr (host));
+		return ntohl(inet_addr (host.c_str()));
 	}
-	else if ((hp = rc_gethostbyname(host)) == NULL)
+	else if ((hp = rc_gethostbyname(host.c_str())) == NULL)
 	{
 		// rc_log(LOG_ERR,"rc_get_ipaddr: couldn't resolve hostname: %s", host);
 		return (uint32_t)0;
@@ -157,7 +158,7 @@ uint32_t rc_get_ipaddr (char *host)
  *
  */
 
-int rc_good_ipaddr (char *addr)
+int rc_good_ipaddr (const char *addr)
 {
 	int             dot_count;
 	int             digit_count;
@@ -329,7 +330,7 @@ uint32_t rc_own_bind_ipaddress(rc_handle *rh)
 	if (rh->this_host_bind_ipaddr != NULL)
 		return *rh->this_host_bind_ipaddr;
 
-	rh->this_host_bind_ipaddr = malloc(sizeof(*rh->this_host_bind_ipaddr));
+	rh->this_host_bind_ipaddr = (uint32_t*)malloc(sizeof(*rh->this_host_bind_ipaddr));
 	if (rh->this_host_bind_ipaddr == NULL)
 		// rc_log(LOG_CRIT, "rc_own_bind_ipaddress: out of memory");
 	if (rc_conf_str(rh, "bindaddr") == NULL ||

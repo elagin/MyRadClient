@@ -17,13 +17,18 @@
 #ifndef FREERADIUS_CLIENT_H
 #define FREERADIUS_CLIENT_H
 
+#ifdef __cplusplus
+extern "C" {
+
+/*
 #ifdef CP_DEBUG
 #define		DEBUG(args...)	rc_log(## args)
 #else
 #define		DEBUG(args...)	;
 #endif
-
+*/
 #include	<sys/types.h>
+//#include <string.h>
 /*
  * Include for C99 uintX_t defines is stdint.h on most systems.  Solaris uses
  * inttypes.h instead.  Comment out the stdint include if you get an error,
@@ -33,16 +38,17 @@
 /* #include	<inttypes.h> */
 #include	<stdio.h>
 #include	<time.h>
-
+/*
 #undef __BEGIN_DECLS
 #undef __END_DECLS
-#ifdef __cplusplus
-# define __BEGIN_DECLS extern "C" {
-# define __END_DECLS }
-#else
-# define __BEGIN_DECLS /* empty */
-# define __END_DECLS /* empty */
-#endif
+*/
+//#ifdef __cplusplus
+//# define __BEGIN_DECLS extern "C" {
+//# define __END_DECLS }
+//#else
+//# define __BEGIN_DECLS // empty
+//# define __END_DECLS // empty
+//#endif
 
 #define AUTH_VECTOR_LEN		16
 #define AUTH_PASS_LEN		(3 * 16) /* multiple of 16 */
@@ -72,12 +78,22 @@
 #define AUTH_LOCAL_SND  (1<<2)
 #define AUTH_RADIUS_SND (1<<3)
 
+
+//#include <string>
+using namespace std;
+
+struct test{
+    string aa;
+};
+
 typedef struct server {
 	int max;
-	char *name[SERVER_MAX];
-	uint16_t port[SERVER_MAX];
-	char *secret[SERVER_MAX];
-	double deadtime_ends[SERVER_MAX];
+//	char *name[SERVER_MAX];
+        string name;
+        uint16_t port;
+//	char *secret[SERVER_MAX];
+	string secret;
+	double deadtime_ends;
 } SERVER;
 
 typedef struct pw_auth_hdr
@@ -92,8 +108,8 @@ typedef struct pw_auth_hdr
 struct rc_conf
 {
 	struct _option		*config_options;
-	uint32_t 			this_host_ipaddr;
-	uint32_t			*this_host_bind_ipaddr;
+	uint32_t 		this_host_ipaddr;
+	uint32_t		*this_host_bind_ipaddr;
 	struct map2id_s		*map2id_list;
 	struct dict_attr	*dictionary_attributes;
 	struct dict_value	*dictionary_values;
@@ -377,9 +393,11 @@ typedef struct send_data /* Used to pass information to sendserver() function */
 {
 	uint8_t        code;		/* RADIUS packet code */
 	uint8_t        seq_nbr;		/* Packet sequence number */
-	char           *server;		/* Name/addrress of RADIUS server */
+//	char           *server;		/* Name/addrress of RADIUS server */
+	string           server;		/* Name/addrress of RADIUS server */
 	int            svc_port;	/* RADIUS protocol destination port */
-	char	       *secret;		/* Shared secret of RADIUS server */	
+//	char	       *secret;		/* Shared secret of RADIUS server */
+	string	       secret;		/* Shared secret of RADIUS server */
 	int            timeout;		/* Session timeout in seconds */
 	int	       retries;
 	VALUE_PAIR     *send_pairs;     /* More a/v pairs to send */
@@ -405,7 +423,7 @@ typedef struct env
 
 #define ENV_SIZE	128
 
-__BEGIN_DECLS
+//__BEGIN_DECLS
 
 /*	Function prototypes	*/
 
@@ -425,9 +443,9 @@ VALUE_PAIR *rc_avpair_readin(const rc_handle *, FILE *);
 
 /*	buildreq.c		*/
 
-void rc_buildreq(rc_handle *, SEND_DATA *, int, char *, unsigned short, char *, int, int);
+void rc_buildreq(rc_handle *, SEND_DATA *, int, const string &, unsigned short, const char *, int, int);
 unsigned char rc_get_seqnbr(rc_handle *);
-int rc_auth(rc_handle *, uint32_t, VALUE_PAIR *, VALUE_PAIR **, char *);
+int rc_auth(rc_handle *, const string &, uint32_t, VALUE_PAIR *, VALUE_PAIR **, char *);
 int rc_auth_proxy(rc_handle *, VALUE_PAIR *, VALUE_PAIR **, char *);
 int rc_acct(rc_handle *, uint32_t, VALUE_PAIR *);
 int rc_acct_proxy(rc_handle *, VALUE_PAIR *);
@@ -444,7 +462,8 @@ void rc_map2id_free(rc_handle *);
 rc_handle *rc_read_config(char *);
 char *rc_conf_str(rc_handle *, char *);
 int rc_conf_int(rc_handle *, char *);
-SERVER *rc_conf_srv(rc_handle *, char *);
+//SERVER *rc_conf_srv(rc_handle *, char *);
+bool rc_conf_srv(rc_handle *rh, char *optname, SERVER * ret);
 int rc_find_server(rc_handle *, char *, uint32_t *, char *);
 void rc_config_free(rc_handle *);
 int rc_add_config(rc_handle *, const char *, const char *, const char *, const int);
@@ -466,8 +485,9 @@ void rc_dict_free(rc_handle *);
 
 struct hostent *rc_gethostbyname(const char *);
 struct hostent *rc_gethostbyaddr(const char *, size_t, int);
-uint32_t rc_get_ipaddr(char *);
-int rc_good_ipaddr(char *);
+//uint32_t rc_get_ipaddr(char *);
+uint32_t rc_get_ipaddr(string);
+int rc_good_ipaddr(const char *);
 const char *rc_ip_hostname(uint32_t);
 unsigned short rc_getport(int);
 int rc_own_hostname(char *, int);
@@ -509,6 +529,8 @@ int rc_import_env(struct env *, char **);
 
 void rc_md5_calc(unsigned char *, unsigned char *, unsigned int);
 
-__END_DECLS
+//__END_DECLS
+}
+#endif // __cplusplus
 
 #endif /* FREERADIUS_CLIENT_H */

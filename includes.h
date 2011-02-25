@@ -177,6 +177,8 @@ int sigprocmask (int, sigset_t *, sigset_t *);
 # endif
 #endif
 
+#include <string>
+
 /* rlib/lock.c */
 int do_lock_exclusive(FILE *);
 int do_unlock(FILE *);
