@@ -33,7 +33,17 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/main.o
+	${OBJECTDIR}/md5.o \
+	${OBJECTDIR}/clientid.o \
+	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/util.o \
+	${OBJECTDIR}/sendserver.o \
+	${OBJECTDIR}/dict.o \
+	${OBJECTDIR}/buildreq.o \
+	${OBJECTDIR}/avpair.o \
+	${OBJECTDIR}/config.o \
+	${OBJECTDIR}/ip_util.o \
+	${OBJECTDIR}/lock.o
 
 
 # C Compiler Flags
@@ -60,10 +70,60 @@ dist/Release/GNU-Linux-x86/myradclient: ${OBJECTFILES}
 	${MKDIR} -p dist/Release/GNU-Linux-x86
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/myradclient ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
+${OBJECTDIR}/md5.o: md5.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/md5.o md5.c
+
+${OBJECTDIR}/clientid.o: clientid.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/clientid.o clientid.c
+
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
+
+${OBJECTDIR}/util.o: util.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/util.o util.c
+
+${OBJECTDIR}/sendserver.o: sendserver.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/sendserver.o sendserver.c
+
+${OBJECTDIR}/dict.o: dict.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/dict.o dict.c
+
+${OBJECTDIR}/buildreq.o: buildreq.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/buildreq.o buildreq.c
+
+${OBJECTDIR}/avpair.o: avpair.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/avpair.o avpair.c
+
+${OBJECTDIR}/config.o: config.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/config.o config.c
+
+${OBJECTDIR}/ip_util.o: ip_util.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/ip_util.o ip_util.c
+
+${OBJECTDIR}/lock.o: lock.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/lock.o lock.c
 
 # Subprojects
 .build-subprojects:

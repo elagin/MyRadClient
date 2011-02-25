@@ -15,7 +15,17 @@
                    displayName="Source Files"
                    projectFiles="true"
                    kind="SOURCE_LOGICAL_FOLDER">
+      <itemPath>avpair.c</itemPath>
+      <itemPath>buildreq.c</itemPath>
+      <itemPath>clientid.c</itemPath>
+      <itemPath>config.c</itemPath>
+      <itemPath>dict.c</itemPath>
+      <itemPath>ip_util.c</itemPath>
+      <itemPath>lock.c</itemPath>
       <itemPath>main.cpp</itemPath>
+      <itemPath>md5.c</itemPath>
+      <itemPath>sendserver.c</itemPath>
+      <itemPath>util.c</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -38,6 +48,9 @@
         <platform>2</platform>
       </toolsSet>
       <compileType>
+        <cTool>
+          <commandlineTool>gcc</commandlineTool>
+        </cTool>
       </compileType>
     </conf>
     <conf name="Release" type="1">
